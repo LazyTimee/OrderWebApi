@@ -9,16 +9,22 @@ namespace OrderWebApi.Services
 {
     public class Uber : iServiceProc
     {
-        public void Process(string orderDetail, AppContext context)
+        private readonly AppContext _context;
+
+        public Uber(AppContext context)
         {
-            if (!string.IsNullOrEmpty(orderDetail) && context != null)
+            _context = context;
+        }
+        public void Process(string orderDetail)
+        {
+            if (!string.IsNullOrEmpty(orderDetail))
             {
                 OrderDetail orderDet = JsonSerializer.Deserialize<OrderDetail>(orderDetail);
-                var order = context.Orders.FirstOrDefault(x => x.OrderNum == orderDet.OrdeNumber);
+                var order = _context.Orders.FirstOrDefault(x => x.OrderNum == orderDet.OrderNumber && !string.IsNullOrEmpty(orderDet.OrderNumber));
                 if (order != null)
                 {
                     order.CovertedOrder = "Error";
-                    context.SaveChanges();
+                    _context.SaveChanges();
                     throw new Exception("Uber failed!");
                 }
             }

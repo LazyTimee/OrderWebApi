@@ -14,20 +14,21 @@ namespace OrderWebApi.Services
     {
         private Dictionary<string, iServiceProc> sysytems = new Dictionary<string, iServiceProc>()
         {
-            { "talabat", new Talabat()},
-            { "zomato", new Zomato()},
-            { "uber", new Uber()}
+            { "talabat", new Talabat(new AppContext())},
+            { "zomato", new Zomato(new AppContext())},
+            { "uber", new Uber(new AppContext())}
         };
 
         private readonly object sycnRoot = new object();
         private Timer _timer;
-
+        private readonly AppContext _context;
         private readonly LogService _logger;
 
         public TimedHostedService(LogService logger) 
         {
             _logger = logger;
-            _logger.Counter = 1;
+            _context = new AppContext();
+            _logger.Counter = 0;
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
@@ -42,24 +43,20 @@ namespace OrderWebApi.Services
         {
             if (Monitor.TryEnter(sycnRoot))
             {
-                using (AppContext context = new AppContext())
+                foreach (var order in _context.Orders.Where(x => string.IsNullOrEmpty(x.CovertedOrder)).OrderBy(x => x.CreatedAt).ToList())
                 {
-                    foreach (var order in context.Orders.Where(x => string.IsNullOrEmpty(x.CovertedOrder)).OrderBy(x => x.CreatedAt))
+                    try
                     {
-                        try
+                        var service = sysytems[order.SystemType];
+                        service.Process(order.SourceOrder);
+                    }
+                    catch (Exception ex)
+                    {
+                        Task writeErr = Task.Run(() =>
                         {
-                            var service = sysytems[order.SystemType];
-                            service.Process(order.SourceOrder, context);
-                        }
-                        catch (Exception ex)
-                        {
-
-                            Task writeErr = Task.Run(() =>
-                            {
-                                _logger.SetError(ex.Message);
-                            });
-                            _logger.Counter++;
-                        }
+                            _logger.SetError(ex.Message);
+                        });
+                        _logger.Counter++;
                     }
                 }
                 Monitor.Exit(sycnRoot);

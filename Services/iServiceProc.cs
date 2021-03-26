@@ -4,7 +4,7 @@ namespace OrderWebApi.Services
 {
     public interface iServiceProc
     {
-        public void Process(string orderDetail, AppContext context);
+        public void Process(string orderDetail);
 
     }
 }

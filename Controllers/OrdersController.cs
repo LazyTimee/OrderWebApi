@@ -84,7 +84,7 @@ namespace OrderWebApi.Controllers
         {
             var order = new Order();
             order.SystemType = sysType;
-            order.OrderNum = orderDet.OrdeNumber;
+            order.OrderNum = orderDet.OrderNumber;
             order.SourceOrder = JsonSerializer.Serialize(orderDet);
             order.CreatedAt = DateTime.Now;
             _context.Orders.Add(order);

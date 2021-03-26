@@ -7,7 +7,7 @@ namespace OrderWebApi.Etities
 {
     public class OrderDetail
     {
-        public string OrdeNumber { get; set; }
+        public string OrderNumber { get; set; }
         public List<Product> Products { get; set; }
     }
 }

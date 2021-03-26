@@ -9,9 +9,16 @@ namespace OrderWebApi.Services
 {
     public class Talabat : iServiceProc
     {
-        public void Process(string orderDetail, AppContext context)
+        private readonly AppContext _context;
+
+        public Talabat(AppContext context)
         {
-            if (!string.IsNullOrEmpty(orderDetail) && context != null)
+            _context = context;
+        }
+
+        public void Process(string orderDetail)
+        {
+            if (!string.IsNullOrEmpty(orderDetail))
             {
                 OrderDetail orderDet = JsonSerializer.Deserialize<OrderDetail>(orderDetail);
                 var count = orderDet.Products.Count;
@@ -19,11 +26,11 @@ namespace OrderWebApi.Services
                 {
                     prod.PaidPrice = -prod.PaidPrice;
                 }
-                var order = context.Orders.FirstOrDefault(x => x.OrderNum == orderDet.OrdeNumber);
+                var order = _context.Orders.FirstOrDefault(x => x.OrderNum == orderDet.OrderNumber && !string.IsNullOrEmpty(orderDet.OrderNumber));
                 if (order != null)
                 {
                     order.CovertedOrder = JsonSerializer.Serialize(orderDet);
-                    context.SaveChanges();
+                    _context.SaveChanges();
                 }
             }
         }
